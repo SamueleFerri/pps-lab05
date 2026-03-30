@@ -12,7 +12,10 @@ trait Course:
 
 object Course:
   // Factory method for creating Course instances
-  def apply(courseId: String, title: String, instructor: String, category: String): Course = ???
+  def apply(courseId: String, title: String, instructor: String, category: String): Course = new CourseImpl(courseId, title, instructor, category)
+
+  private case class CourseImpl(override val courseId: String, override val title: String, override val instructor: String, override val category: String) extends Course
+
 /**
  * Manages courses and student enrollments on an online learning platform.
  */
@@ -86,7 +89,52 @@ end OnlineCoursePlatform
 
 object OnlineCoursePlatform:
   // Factory method for creating an empty platform instance
-  def apply(): OnlineCoursePlatform = ??? // Fill Here!
+  def apply(): OnlineCoursePlatform = new OnlineCoursePlatformImpl // Fill Here!
+
+  private class OnlineCoursePlatformImpl extends OnlineCoursePlatform:
+    import Sequence.*
+    import Optional.*
+
+    private var courses: Sequence[Course] = Nil()
+    private var enrollments: Sequence[(String, String)] = Nil()
+
+    override def addCourse(course: Course): Unit =
+      courses = Cons(course, courses)
+
+    override def findCoursesByCategory(category: String): Sequence[Course] =
+      courses.filter(_.category == category)
+
+    override def getCourse(courseId: String): Optional[Course] =
+      courses.find(_.courseId == courseId)
+
+    override def removeCourse(course: Course): Unit =
+      courses = courses.filter(_ != course)
+
+    override def isCourseAvailable(courseId: String): Boolean =
+      getCourse(courseId) match
+        case Just(_) => true
+        case _ => false
+
+    override def enrollStudent(studentId: String, courseId: String): Unit =
+      if isCourseAvailable(courseId) then enrollments = Cons((studentId, courseId), enrollments)
+
+    override def unenrollStudent(studentId: String, courseId: String): Unit =
+      enrollments = enrollments.filter(_ != (studentId, courseId))
+
+    override def getStudentEnrollments(studentId: String): Sequence[Course] =
+      enrollments
+        .filter(_._1 == studentId)
+        .map(_._2)
+        .flatMap(courseId => getCourse(courseId) match
+          case Just(course) => Cons(course, Nil())
+          case _ => Nil()
+      )
+
+    override def isStudentEnrolled(studentId: String, courseId: String): Boolean =
+      enrollments.find(_ == (studentId, courseId)) match
+        case Just(_) => true
+        case _ => false
+
 
 /**
  * Represents an online learning platform that offers courses and manages student enrollments.
