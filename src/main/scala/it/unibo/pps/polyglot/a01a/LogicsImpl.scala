@@ -2,9 +2,6 @@ package it.unibo.pps.polyglot.a01a
 
 import scala.util.Random
 
-enum Result:
-  case HIT, MISS, WON, LOST
-
 /** solution and descriptions at https://bitbucket.org/mviroli/oop2019-esami/src/master/a01a/sol2/ */
 trait NewLogics:
   def hit(row: Int, col: Int): Result
