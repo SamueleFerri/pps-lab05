@@ -1,7 +1,9 @@
 package it.unibo.pps.ex
 
 import it.unibo.pps.util.Optionals.Optional
-import it.unibo.pps.util.Sequences.* // Assuming Sequence and related methods are here
+import it.unibo.pps.util.Sequences.*
+
+import scala.annotation.tailrec // Assuming Sequence and related methods are here
 
 // Represents a course offered on the platform
 trait Course:
@@ -135,6 +137,18 @@ object OnlineCoursePlatform:
         case Just(_) => true
         case _ => false
 
+object sameCategory:
+  import Sequence.*
+  def unapply(courses: Sequence[Course]): Option[String] = 
+    @tailrec
+    def searchSameCategory(remainCourses: Sequence[Course], targetCat: String): Option[String] = remainCourses match
+      case Cons(head, tail) => if targetCat == head.category then searchSameCategory(tail, targetCat) else None
+      case _ => Some(targetCat)
+      
+    courses match
+      case Cons(head, tail) => searchSameCategory(tail, head.category)  
+      case _ => None
+
 
 /**
  * Represents an online learning platform that offers courses and manages student enrollments.
@@ -190,4 +204,3 @@ object OnlineCoursePlatform:
   platform.removeCourse(pythonCourse)
   println(s"Is PYTHON01 available? ${platform.isCourseAvailable(pythonCourse.courseId)}") // false
   println(s"Programming courses: ${platform.findCoursesByCategory("Programming")}") // Sequence(scalaCourse)
-
